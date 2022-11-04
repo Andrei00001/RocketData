@@ -1,16 +1,121 @@
 from django.contrib import admin
 
 # Register your models here.
-from app.models import EnterpriseType
+from django.utils.safestring import mark_safe
+from django.utils.translation import gettext_lazy
+
+from app import models
 
 register_admin = admin.site.register
 
 
 class EnterpriseTypeAdmin(admin.ModelAdmin):
-    model = EnterpriseType
+    model = models.EnterpriseType
     ordering = ['id']
     list_display = ['type', ]
     fields = ['type', ]
 
 
-register_admin(EnterpriseType, EnterpriseTypeAdmin)
+register_admin(models.EnterpriseType, EnterpriseTypeAdmin)
+
+
+class EnterpriseEmployeesInline(admin.StackedInline):
+    model = models.EnterpriseEmployees
+    fields = [
+        'name',
+    ]
+    extra = 1
+
+
+class EnterpriseProductsInline(admin.StackedInline):
+    model = models.EnterpriseProducts
+    fields = [
+        'name',
+        'model',
+        'market_launch_date',
+    ]
+    extra = 1
+
+
+class EnterpriseContactsInline(admin.StackedInline):
+    model = models.EnterpriseContacts
+    fields = [
+        'email',
+        ('country',
+         'city',
+         'the_outside',
+         'house_number',
+         )
+    ]
+    extra = 1
+
+
+class CityFilter(admin.SimpleListFilter):
+    title = 'City'
+    parameter_name = 'city'
+
+    enterprises = models.Enterprise.objects.all()
+    cities = set(models.EnterpriseContacts.objects.filter(enterprise__in=enterprises).values_list('city'))
+    cities = [city[0] for city in cities]
+
+    def lookups(self, request, model_admin):
+        for city in self.cities:
+            yield city, gettext_lazy(city)
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value not in self.cities:
+            return None
+        return queryset.filter(contacts__city=value)
+
+
+class EnterpriseAdmin(admin.ModelAdmin):
+    model = models.Enterprise
+    readonly_fields = 'provider', 'price', 'move_date',
+    fields = 'name', 'type', 'provider', 'price', 'move_date',
+    list_display = 'name', 'type'
+    inlines = [
+        EnterpriseContactsInline,
+        EnterpriseProductsInline,
+        EnterpriseEmployeesInline
+    ]
+    list_filter = [
+        CityFilter,
+    ]
+    actions = [
+        'clear_the_debt'
+    ]
+
+    def provider(self, obj):
+        provider = obj.recipient.filter(provider__type__id__lt=obj.type.id).last().provider
+        return mark_safe(
+            f"<a href=http://127.0.0.1:8000/admin/app/enterprise/{provider.id}/change/ >"
+            f"{provider}"
+            f'</a>'
+        )
+
+    def price(self, obj):
+        return obj.recipient.filter(provider__type__id__lt=obj.type.id).last().price
+
+    def move_date(self, obj):
+        return obj.recipient.filter(provider__type__id__lt=obj.type.id).last().move_date
+
+    @admin.action(description='Сlear the debt')
+    def clear_the_debt(self, request, queryset):
+        for qs in queryset:
+            qs = qs.recipient.last()
+            qs.price = 0
+            qs.save()
+
+
+register_admin(models.Enterprise, EnterpriseAdmin)
+
+
+class SupplyChainAdmin(admin.ModelAdmin):
+    model = models.SupplyChain
+    readonly_fields = 'move_date',
+    fields = 'provider', 'recipient', 'price', 'move_date'
+    list_display = 'provider', 'recipient', 'price', 'move_date'
+
+
+register_admin(models.SupplyChain, SupplyChainAdmin)
