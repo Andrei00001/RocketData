@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 
 # Create your models here.
@@ -20,24 +21,34 @@ class Enterprise(models.Model):
 
 
 class EnterpriseContacts(models.Model):
-    email = models.EmailField(max_length=64)
-    country = models.CharField(max_length=64)
-    city = models.CharField(max_length=64)
-    the_outside = models.CharField(max_length=64)
-    house_number = models.CharField(max_length=64)
-    enterprise = models.ForeignKey(Enterprise, on_delete=models.CASCADE, related_name='contacts')
+    email = models.EmailField(max_length=32)
+    country = models.CharField(max_length=32)
+    city = models.CharField(max_length=32)
+    the_outside = models.CharField(max_length=32)
+    house_number = models.CharField(max_length=32)
+    enterprise = models.OneToOneField(Enterprise, on_delete=models.CASCADE, related_name='contacts')
 
 
-class EnterpriseProducts(models.Model):
+class Products(models.Model):
     name = models.CharField(max_length=25, unique=True)
     model = models.CharField(max_length=64)
     market_launch_date = models.DateField()
+
+    def __str__(self):
+        return self.name
+
+
+class EnterpriseProducts(models.Model):
+    products = models.ForeignKey(Products, on_delete=models.CASCADE, related_name='enterprise')
     enterprise = models.ForeignKey(Enterprise, on_delete=models.CASCADE, related_name='products')
+
+    def __str__(self):
+        return self.products.name
 
 
 class EnterpriseEmployees(models.Model):
-    name = models.CharField(max_length=64)
-    enterprise = models.ForeignKey(Enterprise, on_delete=models.CASCADE, related_name='employees')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='enterprise_user')
+    enterprise = models.ForeignKey(Enterprise, on_delete=models.CASCADE, related_name='user')
 
 
 class SupplyChain(models.Model):
@@ -54,3 +65,7 @@ class SupplyChain(models.Model):
             self.price = round(self.price, 2)
         super().save(*args, **kwargs)
 
+
+class SupplyChainProducts(models.Model):
+    supply_chain = models.ForeignKey(SupplyChain, on_delete=models.CASCADE, related_name='products_supply_chain')
+    products = models.ForeignKey(EnterpriseProducts, on_delete=models.CASCADE, related_name='supply_chain')
