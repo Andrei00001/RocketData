@@ -6,6 +6,7 @@ from django.utils.translation import gettext_lazy
 
 from app import models
 from app.models import Enterprise
+from app.tasks import sync_bods3
 
 register_admin = admin.site.register
 
@@ -133,6 +134,15 @@ class EnterpriseAdmin(admin.ModelAdmin):
 
     @admin.action(description='Сlear the debt')
     def clear_the_debt(self, request, queryset):
+        if len(queryset) > 20:
+            queryset = [x.pk for x in queryset]
+            sync_bods3.apply_async(
+                args=(
+                    queryset
+                ),
+                serializer='json',
+            )
+            return
         for qs in queryset:
             qs = qs.recipient.last()
             qs.price = 0

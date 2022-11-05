@@ -63,6 +63,7 @@ class SupplyChain(models.Model):
     def save(self, *args, **kwargs):
         if self.price is not None:
             self.price = round(self.price, 2)
+        self.price = 0 if self.price < 0 else self.price
         super().save(*args, **kwargs)
 
 
