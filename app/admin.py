@@ -5,6 +5,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy
 
 from app import models
+from app.models import Enterprise
 
 register_admin = admin.site.register
 
@@ -19,10 +20,20 @@ class EnterpriseTypeAdmin(admin.ModelAdmin):
 register_admin(models.EnterpriseType, EnterpriseTypeAdmin)
 
 
+class ProductsAdmin(admin.ModelAdmin):
+    model = models.Products
+    ordering = ['id']
+    list_display = ['name', 'model', 'market_launch_date', ]
+    fields = ['name', 'model', 'market_launch_date', ]
+
+
+register_admin(models.Products, ProductsAdmin)
+
+
 class EnterpriseEmployeesInline(admin.StackedInline):
     model = models.EnterpriseEmployees
     fields = [
-        'name',
+        'user',
     ]
     extra = 1
 
@@ -30,9 +41,15 @@ class EnterpriseEmployeesInline(admin.StackedInline):
 class EnterpriseProductsInline(admin.StackedInline):
     model = models.EnterpriseProducts
     fields = [
-        'name',
-        'model',
-        'market_launch_date',
+        'products',
+    ]
+    extra = 1
+
+
+class ProductsInline(admin.StackedInline):
+    model = models.SupplyChainProducts
+    fields = [
+        'products',
     ]
     extra = 1
 
@@ -55,8 +72,11 @@ class CityFilter(admin.SimpleListFilter):
     parameter_name = 'city'
 
     enterprises = models.Enterprise.objects.all()
-    cities = set(models.EnterpriseContacts.objects.filter(enterprise__in=enterprises).values_list('city'))
-    cities = [city[0] for city in cities]
+    try:
+        cities = set(models.EnterpriseContacts.objects.filter(enterprise__in=enterprises).values_list('city'))
+        cities = [city[0] for city in cities]
+    except Exception:
+        pass
 
     def lookups(self, request, model_admin):
         for city in self.cities:
@@ -71,6 +91,7 @@ class CityFilter(admin.SimpleListFilter):
 
 class EnterpriseAdmin(admin.ModelAdmin):
     model = models.Enterprise
+    ordering = "id",
     readonly_fields = 'provider', 'price', 'move_date',
     fields = 'name', 'type', 'provider', 'price', 'move_date',
     list_display = 'name', 'type'
@@ -87,7 +108,11 @@ class EnterpriseAdmin(admin.ModelAdmin):
     ]
 
     def provider(self, obj):
+
         provider = obj.recipient.filter(provider__type__id__lt=obj.type.id).last().provider
+        if provider.type.id == 1 and obj.type.id == 4:
+            return
+
         return mark_safe(
             f"<a href=http://127.0.0.1:8000/admin/app/enterprise/{provider.id}/change/ >"
             f"{provider}"
@@ -95,9 +120,15 @@ class EnterpriseAdmin(admin.ModelAdmin):
         )
 
     def price(self, obj):
+        provider = obj.recipient.filter(provider__type__id__lt=obj.type.id).last().provider
+        if provider.type.id == 1 and obj.type.id == 4:
+            return
         return obj.recipient.filter(provider__type__id__lt=obj.type.id).last().price
 
     def move_date(self, obj):
+        provider = obj.recipient.filter(provider__type__id__lt=obj.type.id).last().provider
+        if provider.type.id == 1 and obj.type.id == 4:
+            return
         return obj.recipient.filter(provider__type__id__lt=obj.type.id).last().move_date
 
     @admin.action(description='Сlear the debt')
@@ -116,6 +147,9 @@ class SupplyChainAdmin(admin.ModelAdmin):
     readonly_fields = 'move_date',
     fields = 'provider', 'recipient', 'price', 'move_date'
     list_display = 'provider', 'recipient', 'price', 'move_date'
+    inlines = [
+        ProductsInline,
+    ]
 
 
 register_admin(models.SupplyChain, SupplyChainAdmin)
