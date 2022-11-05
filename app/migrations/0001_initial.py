@@ -41,3 +41,4 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(create_enterprise_type),
     ]
+
