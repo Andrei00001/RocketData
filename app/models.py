@@ -25,13 +25,19 @@ class EnterpriseContacts(models.Model):
     city = models.CharField(max_length=64)
     the_outside = models.CharField(max_length=64)
     house_number = models.CharField(max_length=64)
-    enterprise = models.ForeignKey(Enterprise, on_delete=models.CASCADE, related_name='contacts')
+    enterprise = models.OneToOneField(Enterprise, on_delete=models.CASCADE, related_name='contacts')
 
 
-class EnterpriseProducts(models.Model):
+class Products(models.Model):
     name = models.CharField(max_length=25, unique=True)
     model = models.CharField(max_length=64)
     market_launch_date = models.DateField()
+
+    def __str__(self):
+        return self.name
+
+class EnterpriseProducts(models.Model):
+    products = models.ForeignKey(Products, on_delete=models.CASCADE, related_name='enterprise')
     enterprise = models.ForeignKey(Enterprise, on_delete=models.CASCADE, related_name='products')
 
 

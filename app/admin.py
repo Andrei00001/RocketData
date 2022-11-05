@@ -18,6 +18,15 @@ class EnterpriseTypeAdmin(admin.ModelAdmin):
 
 register_admin(models.EnterpriseType, EnterpriseTypeAdmin)
 
+class ProductsAdmin(admin.ModelAdmin):
+    model = models.Products
+    ordering = ['id']
+    list_display = ['name', 'model', 'market_launch_date', ]
+    fields = ['name', 'model', 'market_launch_date', ]
+
+
+register_admin(models.Products, ProductsAdmin)
+
 
 class EnterpriseEmployeesInline(admin.StackedInline):
     model = models.EnterpriseEmployees
@@ -30,9 +39,7 @@ class EnterpriseEmployeesInline(admin.StackedInline):
 class EnterpriseProductsInline(admin.StackedInline):
     model = models.EnterpriseProducts
     fields = [
-        'name',
-        'model',
-        'market_launch_date',
+        'products',
     ]
     extra = 1
 
