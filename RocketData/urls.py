@@ -18,7 +18,8 @@ from django.urls import path, include, re_path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 from app.api.views import EnterpriseView, EnterpriseFromCountryView, StatisticsEnterpriseView, ProductsEnterpriseView, \
-    ProductsView, DeleteProductsView, SupplyChainView, DeleteSupplyChainView, UpdateProductView, UpdateSupplyChainView
+    ProductsView, DeleteProductsView, SupplyChainView, DeleteSupplyChainView, UpdateProductView, UpdateSupplyChainView, \
+    QrView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -36,6 +37,8 @@ urlpatterns = [
 
     path('api/auth/', include('djoser.urls')),
     re_path(r'^auth/', include('djoser.urls.authtoken')),
+
+    path('custom/qr/<str:name_enterprise>', QrView.as_view()),
 
     path('custom/list_enterprise', EnterpriseView.as_view()),
     path('custom/list_enterprise_from_country/<str:country>/', EnterpriseFromCountryView.as_view()),

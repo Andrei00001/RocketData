@@ -8,8 +8,10 @@ from rest_framework.permissions import IsAuthenticated
 from app.api.serializer import EmployeesSerializer, EnterpriseContactsSerializer, ProductsSerializer, \
     EnterpriseEmployeesSerializer, SupplyChainSerializer, SupplyChainViewSerializer, UpdateProductsSerializer, \
     UpdateSupplyChainViewSerializer
-from app.models import Enterprise, EnterpriseContacts, SupplyChain, Products, EnterpriseProducts
+from app.models import Enterprise, EnterpriseContacts, SupplyChain, Products
 from rest_framework.response import Response
+
+from app.tasks import sync_bods4
 
 
 class ProductsView(views.APIView):
@@ -178,3 +180,24 @@ def get_data_for_enterprise(enterprises: list[Enterprise]) -> list[list[dict]]:
         )
 
     return list
+
+
+class QrView(views.APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, name_enterprise: str, *args, **kwargs):
+        try:
+            contacts = EnterpriseContacts.objects.get(enterprise__name=name_enterprise)
+        except EnterpriseContacts.DoesNotExist:
+            return HttpResponse(f"404 company with this name-{name_enterprise} does not exist")
+        data = f'email:{contacts.email}\nAddress:{contacts.country}-{contacts.city}-{contacts.the_outside}-{contacts.house_number}'
+        user_email = request.user.email
+        sync_bods4.apply_async(
+            args=(
+                data,
+                name_enterprise,
+                user_email,
+            ),
+            serializer='json',
+        )
+        return HttpResponse("200")

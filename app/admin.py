@@ -3,9 +3,9 @@ from django.contrib import admin
 # Register your models here.
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy
+from nested_inline.admin import NestedModelAdmin
 
 from app import models
-from app.models import Enterprise
 from app.tasks import sync_bods3
 
 register_admin = admin.site.register
@@ -90,7 +90,8 @@ class CityFilter(admin.SimpleListFilter):
         return queryset.filter(contacts__city=value)
 
 
-class EnterpriseAdmin(admin.ModelAdmin):
+class EnterpriseAdmin(NestedModelAdmin):
+    change_form_template = 'admin/change_form_button.html'
     model = models.Enterprise
     ordering = "id",
     readonly_fields = 'provider', 'price', 'move_date',
