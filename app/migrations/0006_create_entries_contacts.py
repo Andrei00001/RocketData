@@ -9,8 +9,6 @@ def create(apps, schema_editor):
     Products = apps.get_model('app', 'Products')
     Enterprise = apps.get_model('app', 'Enterprise')
     EnterpriseContacts = apps.get_model('app', 'EnterpriseContacts')
-    EnterpriseProducts = apps.get_model('app', 'EnterpriseProducts')
-    SupplyChain = apps.get_model('app', 'SupplyChain')
 
     enterprise_contacts = {
         1: ['asdf@as.as', 'Беларусь', "Минск", "Улица", "1"],
@@ -51,43 +49,6 @@ def create(apps, schema_editor):
             )
         )
     Products.objects.bulk_create(list_query)
-
-    # enterprise_products = {
-    #     1: [1, 2, 3],
-    #     2: [4, 5],
-    # }
-    # list_query = []
-    # for enterprise, list_value in enterprise_products.items():
-    #     enterprise = Enterprise.objects.get(pk=enterprise)
-    #     product_id = list_value.pop(0)
-    #     product = Products.objects.get(pk=product_id)
-    #     list_query.append(
-    #         EnterpriseProducts(
-    #             enterprise=enterprise,
-    #             products=product,
-    #         )
-    #     )
-    # EnterpriseProducts.objects.bulk_create(list_query)
-    #
-    # list_supply_chain = [
-    #     [1, 2, 1.2, datetime.datetime.now()],
-    #     [2, 3, 1.2, datetime.datetime.now()],
-    #     [3, 4, 1.2, datetime.datetime.now()],
-    #     [4, 5, 1.2, datetime.datetime.now()],
-    # ]
-    # list_query = []
-    # for value in list_supply_chain:
-    #     provider = Enterprise.objects.get(pk=value[0])
-    #     recipient = Enterprise.objects.get(pk=value[1])
-    #     list_query.append(
-    #         SupplyChain(
-    #             provider=provider,
-    #             recipient=recipient,
-    #             price=value[2],
-    #             move_date=value[3],
-    #         )
-    #     )
-    # SupplyChain.objects.bulk_create(list_query)
 
 
 class Migration(migrations.Migration):

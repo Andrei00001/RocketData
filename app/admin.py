@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy
 from nested_inline.admin import NestedModelAdmin
 
 from app import models
-from app.tasks import sync_bods3
+from app.tasks import clear_the_debt
 
 register_admin = admin.site.register
 
@@ -76,7 +76,7 @@ class CityFilter(admin.SimpleListFilter):
     try:
         cities = set(models.EnterpriseContacts.objects.filter(enterprise__in=enterprises).values_list('city'))
         cities = [city[0] for city in cities]
-    except Exception:
+    except Exception as error:
         pass
 
     def lookups(self, request, model_admin):
@@ -109,12 +109,13 @@ class EnterpriseAdmin(NestedModelAdmin):
         'clear_the_debt'
     ]
 
-    def provider(self, obj):
+    query = ""
 
-        provider = obj.recipient.filter(provider__type__id__lt=obj.type.id).last().provider
+    def provider(self, obj):
+        self.query = obj.recipient.filter(provider__type__id__lt=obj.type.id).last()
+        provider = self.query.provider
         if provider.type.id == 1 and obj.type.id == 4:
             return
-
         return mark_safe(
             f"<a href=http://127.0.0.1:8000/admin/app/enterprise/{provider.id}/change/ >"
             f"{provider}"
@@ -122,28 +123,29 @@ class EnterpriseAdmin(NestedModelAdmin):
         )
 
     def price(self, obj):
-        provider = obj.recipient.filter(provider__type__id__lt=obj.type.id).last().provider
+        provider = self.query.provider
         if provider.type.id == 1 and obj.type.id == 4:
             return
-        return obj.recipient.filter(provider__type__id__lt=obj.type.id).last().price
+        return self.query.price
 
     def move_date(self, obj):
-        provider = obj.recipient.filter(provider__type__id__lt=obj.type.id).last().provider
+        provider = self.query.provider
         if provider.type.id == 1 and obj.type.id == 4:
             return
-        return obj.recipient.filter(provider__type__id__lt=obj.type.id).last().move_date
+        return self.query.move_date
 
     @admin.action(description='Сlear the debt')
     def clear_the_debt(self, request, queryset):
         if len(queryset) > 20:
             queryset = [x.pk for x in queryset]
-            sync_bods3.apply_async(
+            clear_the_debt.apply_async(
                 args=(
                     queryset
                 ),
                 serializer='json',
             )
             return
+
         for qs in queryset:
             qs = qs.recipient.last()
             qs.price = 0

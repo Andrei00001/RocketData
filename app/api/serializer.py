@@ -1,20 +1,16 @@
-from itertools import product
-
 from rest_framework import serializers
-
-from app.models import Products
 
 
 class ProductsSerializer(serializers.Serializer):
     name = serializers.CharField()
     model = serializers.CharField()
-    market_launch_date = serializers.DateField()
+    market_launch_date = serializers.DateTimeField()
 
 
 class UpdateProductsSerializer(serializers.Serializer):
     new_name = serializers.CharField()
     new_model = serializers.CharField()
-    new_market_launch_date = serializers.DateField()
+    new_market_launch_date = serializers.DateTimeField()
 
 
 class SupplyChainSerializer(serializers.Serializer):
