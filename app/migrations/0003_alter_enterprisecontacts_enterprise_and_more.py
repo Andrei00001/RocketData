@@ -12,15 +12,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterField(
-            model_name="enterprisecontacts",
-            name="enterprise",
-            field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE,
-                related_name="contacts",
-                to="app.enterprise",
-            ),
-        ),
-        migrations.AlterField(
             model_name="enterpriseemployees",
             name="enterprise",
             field=models.ForeignKey(

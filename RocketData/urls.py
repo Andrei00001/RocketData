@@ -17,9 +17,7 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
-from app.api.views import EnterpriseView, EnterpriseFromCountryView, StatisticsEnterpriseView, ProductsEnterpriseView, \
-    ProductsView, DeleteProductsView, SupplyChainView, DeleteSupplyChainView, UpdateProductView, UpdateSupplyChainView, \
-    QrView
+from app.api import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -38,19 +36,21 @@ urlpatterns = [
     path('api/auth/', include('djoser.urls')),
     re_path(r'^auth/', include('djoser.urls.authtoken')),
 
-    path('custom/qr/<str:name_enterprise>', QrView.as_view()),
+    path('custom/qr/<str:name_enterprise>', views.QrView.as_view()),
 
-    path('custom/list_enterprise', EnterpriseView.as_view()),
-    path('custom/list_enterprise_from_country/<str:country>/', EnterpriseFromCountryView.as_view()),
-    path('custom/list_enterprise_statistics', StatisticsEnterpriseView.as_view()),
-    path('custom/list_enterprise_product/<int:product_id>/', ProductsEnterpriseView.as_view()),
+    path('custom/my_enterprise', views.EnterpriseView.as_view()),
 
-    path('custom/add_product', ProductsView.as_view()),
-    path('custom/update_product/<str:product_name>/', UpdateProductView.as_view()),
-    path('custom/delete_product/<str:product_name>/', DeleteProductsView.as_view()),
+    path('custom/list_enterprise', views.ListEnterpriseView.as_view()),
+    path('custom/list_enterprise_from_country/<str:country>/', views.EnterpriseFromCountryView.as_view()),
+    path('custom/list_enterprise_statistics', views.StatisticsEnterpriseView.as_view()),
+    path('custom/list_enterprise_product/<int:product_id>/', views.ProductsEnterpriseView.as_view()),
 
-    path('custom/add_supply_chain/', SupplyChainView.as_view()),
-    path('custom/update_supply_chain/<str:provider_name>/<str:request_name>', UpdateSupplyChainView.as_view()),
-    path('custom/delete_supply_chain/<str:provider_name>/<str:request_name>/', DeleteSupplyChainView.as_view()),
+    path('custom/add_product', views.ProductsView.as_view()),
+    path('custom/update_product/<str:product_name>/', views.UpdateProductView.as_view()),
+    path('custom/delete_product/<str:product_name>/', views.DeleteProductsView.as_view()),
+
+    path('custom/add_supply_chain/', views.SupplyChainView.as_view()),
+    path('custom/update_supply_chain/<str:provider_name>/<str:recipient_name>', views.UpdateSupplyChainView.as_view()),
+    path('custom/delete_supply_chain/<str:provider_name>/<str:recipient_name>/', views.DeleteSupplyChainView.as_view()),
 ]
 

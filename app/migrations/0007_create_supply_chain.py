@@ -52,7 +52,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("app", "0006_create_entries_contacts"),
+        ("app", "0006_create_product"),
     ]
 
     operations = [

@@ -58,40 +58,6 @@ class Migration(migrations.Migration):
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name="enterprisecontacts",
-            name="city",
-            field=models.CharField(max_length=32),
-        ),
-        migrations.AlterField(
-            model_name="enterprisecontacts",
-            name="country",
-            field=models.CharField(max_length=32),
-        ),
-        migrations.AlterField(
-            model_name="enterprisecontacts",
-            name="email",
-            field=models.EmailField(max_length=32),
-        ),
-        migrations.AlterField(
-            model_name="enterprisecontacts",
-            name="enterprise",
-            field=models.OneToOneField(
-                on_delete=django.db.models.deletion.CASCADE,
-                related_name="contacts",
-                to="app.enterprise",
-            ),
-        ),
-        migrations.AlterField(
-            model_name="enterprisecontacts",
-            name="house_number",
-            field=models.CharField(max_length=32),
-        ),
-        migrations.AlterField(
-            model_name="enterprisecontacts",
-            name="the_outside",
-            field=models.CharField(max_length=32),
-        ),
-        migrations.AlterField(
             model_name="enterpriseemployees",
             name="enterprise",
             field=models.ForeignKey(

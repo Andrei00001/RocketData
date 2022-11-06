@@ -24,6 +24,12 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("name", models.CharField(max_length=50, unique=True)),
+                ("email", models.EmailField(max_length=32)),
+                ("country", models.CharField(max_length=32)),
+                ("city", models.CharField(max_length=32)),
+                ("the_outside", models.CharField(max_length=32)),
+                ("house_number", models.CharField(max_length=32)),
+                ("level", models.IntegerField()),
                 (
                     "type",
                     models.ForeignKey(
@@ -74,33 +80,6 @@ class Migration(migrations.Migration):
                     "enterprise",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE, to="app.enterprise"
-                    ),
-                ),
-            ],
-        ),
-        migrations.CreateModel(
-            name="EnterpriseContacts",
-            fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                ("email", models.EmailField(max_length=64)),
-                ("country", models.CharField(max_length=64)),
-                ("city", models.CharField(max_length=64)),
-                ("the_outside", models.CharField(max_length=64)),
-                ("house_number", models.CharField(max_length=64)),
-                (
-                    "enterprise",
-                    models.OneToOneField(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        related_name="contacts",
-                        to="app.enterprise",
                     ),
                 ),
             ],

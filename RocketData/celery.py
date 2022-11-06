@@ -15,15 +15,15 @@ celery_app.autodiscover_tasks()
 @celery_app.on_after_finalize.connect
 def setup_periodic_tasks(sender, **kwargs):
     from app.tasks import (
-        sync_bods,
+        add_price,
     )
-    sender.add_periodic_task(3 * 60 * 60, sync_bods.s())
+    sender.add_periodic_task(3 * 60 * 60, add_price.s())
 
 
 celery_app.conf.beat_schedule = {
     # Executes every dey morning at 6:30 a.m.
     'every-dey': {
-        'task': 'app.tasks.sync_bods2',
+        'task': 'app.tasks.take_away_the_price',
         'schedule': crontab(minute=30, hour=6),
     },
 }

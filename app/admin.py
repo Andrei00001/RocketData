@@ -3,10 +3,10 @@ from django.contrib import admin
 # Register your models here.
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy
-from nested_inline.admin import NestedModelAdmin
+from nested_inline.admin import NestedModelAdmin, NestedTabularInline, NestedStackedInline
 
 from app import models
-from app.tasks import sync_bods3
+from app.tasks import clear_the_debt
 
 register_admin = admin.site.register
 
@@ -31,7 +31,7 @@ class ProductsAdmin(admin.ModelAdmin):
 register_admin(models.Products, ProductsAdmin)
 
 
-class EnterpriseEmployeesInline(admin.StackedInline):
+class EnterpriseEmployeesInline(NestedStackedInline):
     model = models.EnterpriseEmployees
     fields = [
         'user',
@@ -39,7 +39,7 @@ class EnterpriseEmployeesInline(admin.StackedInline):
     extra = 1
 
 
-class EnterpriseProductsInline(admin.StackedInline):
+class EnterpriseProductsInline(NestedStackedInline):
     model = models.EnterpriseProducts
     fields = [
         'products',
@@ -55,28 +55,14 @@ class ProductsInline(admin.StackedInline):
     extra = 1
 
 
-class EnterpriseContactsInline(admin.StackedInline):
-    model = models.EnterpriseContacts
-    fields = [
-        'email',
-        ('country',
-         'city',
-         'the_outside',
-         'house_number',
-         )
-    ]
-    extra = 1
-
-
 class CityFilter(admin.SimpleListFilter):
     title = 'City'
     parameter_name = 'city'
 
-    enterprises = models.Enterprise.objects.all()
     try:
-        cities = set(models.EnterpriseContacts.objects.filter(enterprise__in=enterprises).values_list('city'))
-        cities = [city[0] for city in cities]
-    except Exception:
+        enterprises = models.Enterprise.objects.all().values_list('city')
+        cities = [city[0] for city in enterprises]
+    except Exception as error:
         pass
 
     def lookups(self, request, model_admin):
@@ -87,7 +73,7 @@ class CityFilter(admin.SimpleListFilter):
         value = self.value()
         if value not in self.cities:
             return None
-        return queryset.filter(contacts__city=value)
+        return queryset.filter(city=value)
 
 
 class EnterpriseAdmin(NestedModelAdmin):
@@ -95,10 +81,21 @@ class EnterpriseAdmin(NestedModelAdmin):
     model = models.Enterprise
     ordering = "id",
     readonly_fields = 'provider', 'price', 'move_date',
-    fields = 'name', 'type', 'provider', 'price', 'move_date',
+    fields = [
+        'name',
+        'type',
+        'provider',
+        'price',
+        'move_date',
+        'email',
+        ('country',
+         'city',
+         'the_outside',
+         'house_number',
+         )
+    ]
     list_display = 'name', 'type'
     inlines = [
-        EnterpriseContactsInline,
         EnterpriseProductsInline,
         EnterpriseEmployeesInline
     ]
@@ -109,12 +106,11 @@ class EnterpriseAdmin(NestedModelAdmin):
         'clear_the_debt'
     ]
 
+    query = ""
+
     def provider(self, obj):
-
-        provider = obj.recipient.filter(provider__type__id__lt=obj.type.id).last().provider
-        if provider.type.id == 1 and obj.type.id == 4:
-            return
-
+        self.query = obj.recipient.filter(provider__level__lt=obj.level).last()
+        provider = self.query.provider
         return mark_safe(
             f"<a href=http://127.0.0.1:8000/admin/app/enterprise/{provider.id}/change/ >"
             f"{provider}"
@@ -122,30 +118,27 @@ class EnterpriseAdmin(NestedModelAdmin):
         )
 
     def price(self, obj):
-        provider = obj.recipient.filter(provider__type__id__lt=obj.type.id).last().provider
-        if provider.type.id == 1 and obj.type.id == 4:
-            return
-        return obj.recipient.filter(provider__type__id__lt=obj.type.id).last().price
+        return self.query.price
 
     def move_date(self, obj):
-        provider = obj.recipient.filter(provider__type__id__lt=obj.type.id).last().provider
-        if provider.type.id == 1 and obj.type.id == 4:
-            return
-        return obj.recipient.filter(provider__type__id__lt=obj.type.id).last().move_date
+        return self.query.move_date
 
     @admin.action(description='Сlear the debt')
     def clear_the_debt(self, request, queryset):
         if len(queryset) > 20:
             queryset = [x.pk for x in queryset]
-            sync_bods3.apply_async(
+            clear_the_debt.apply_async(
                 args=(
                     queryset
                 ),
                 serializer='json',
             )
             return
+
         for qs in queryset:
             qs = qs.recipient.last()
+            if not qs:
+                return
             qs.price = 0
             qs.save()
 
