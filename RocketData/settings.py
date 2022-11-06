@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'django_celery_results',
     'django_celery_beat',
     'djoser',
+    'nested_admin',
+    'nested_inline',
     'rest_framework',
     'rest_framework.authtoken',
     'drf_spectacular',
@@ -149,7 +151,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 EMAIL_HOST = os.getenv('EMAIL_HOST')
-EMAIL_PORT = 587  # Это порт TLS, для SSL порт 465 587
+EMAIL_PORT = os.getenv('EMAIL_PORT')
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS = True

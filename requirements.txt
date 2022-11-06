@@ -8,3 +8,11 @@ celery==5.2.7
 django-celery-results==2.4.0
 redis==4.3.4
 django-celery-beat==2.4.0
+pillow==9.3.0
+qrcode==7.3.1
+django-nested-admin==4.0.0
+django-nested-inline==0.4.5
+
+
+
+
